@@ -65,7 +65,3 @@ class Crypt{
 }
 
 Crypt::start();
-
-
-
-// echo $private;
