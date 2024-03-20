@@ -36,14 +36,28 @@ class Crypt{
 
     public function encode(){
         $plaintext = file_get_contents($this->passwd_file);
-        $encode = $this->rsa->getPublicKey()->encrypt($plaintext);
+        $public =  $this->rsa->getPublicKey();
+        $partLength = ($public->getLength() - 88) >> 3;
+        $rows = str_split($plaintext,$partLength);
+        $encode = "";
+        foreach($rows as $part){
+            $encode .= $public->withPadding(RSA::ENCRYPTION_PKCS1)->encrypt($part);
+        }
+    
         file_put_contents($this->encode_file,base64_encode($encode));
     }
 
 
     public function decode(){
         $plaintext = file_get_contents($this->encode_file);
-        $decode = $this->rsa->decrypt(base64_decode($plaintext));
+        $bytes = base64_decode($plaintext);
+        $private =  $this->rsa;
+        $partLength = $private->getLength()/8;
+        $rows = str_split($bytes,$partLength);
+        $decode = "";
+        foreach($rows as $part){
+            $decode .= $private->withPadding(RSA::ENCRYPTION_PKCS1)->decrypt($part);
+        }
         file_put_contents($this->decode_file,$decode);
     }
 
